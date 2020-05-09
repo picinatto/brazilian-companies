@@ -89,11 +89,38 @@ def create_table_cities():
   conDB = sqlite3.connect(db_location+db_name)
   cursorDB = conDB.cursor()
 
-  sql_select_cities = '''SELECT DISTINCT cod_municipio FROM empresas'''
+  #sql_select_cities = '''SELECT DISTINCT cod_municipio FROM empresas LIMIT 50'''
+  #sql_select_cities = '''SELECT DISTINCT cod_municipio & '|' & municipio & '|' uf  FROM empresas LIMIT 50'''
+
+  sql_select_cities = ''' SELECT DISTINCT 
+      t0.cod_municipio,
+      t1.municipio,
+      t1.uf
+    FROM empresas t0
+      INNER JOIN (
+        SELECT 
+          cod_municipio,
+          MIN(municipio) As municipio,
+          MIN(uf) AS uf
+        FROM empresas
+          GROUP BY cod_municipio 
+        LIMIT 100
+      ) t1 ON t1.cod_municipio = t0.cod_municipio
+    LIMIT 100
+  '''
 
   # GET THE CITIES
-  # SELECT DISTINCT c.cod_municipio, MIN(m.municipio) AS municipio, MIN(m.uf) AS uf FROM empresas c
-      #INNER JOIN empresas m ON m.cod_municipio = c.cod_municipio; 
+  sql_select_cities_name = '''SELECT DISTINCT 
+      c.cod_municipio, 
+      MIN(m.municipio) AS municipio, 
+      MIN(m.uf) AS uf 
+    FROM empresas c
+      INNER JOIN empresas m ON m.cod_municipio = c.cod_municipio
+    LIMIT 10; '''
+
+  print('Getting the cities from the companies\' database')
+  cursorDB.execute(sql_select_cities)
+  print(cursorDB.fetchall())
   
   # Create table that will hold data for the IBGE cities
   sql_create_cities = '''CREATE TABLE IF NOT EXISTS cities (
@@ -109,9 +136,10 @@ def create_table_cities():
     city_name text
   );'''
 
-  cursorDB.execute(sql_create_cities)
+  #cursorDB.execute(sql_create_cities)
 
   print(f'Finished at {datetime.datetime.now()}')
   conDB.close()
 
 #create_table_companies_south()
+create_table_cities()
