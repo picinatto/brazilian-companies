@@ -9,10 +9,11 @@ db_name = 'CNPJ_full.db'
 def create_table_companies_south():
   start_time = datetime.datetime.now()
   print(f'Started at {datetime.datetime.now()}')
-  print('Creating the table companies_south..')
+  
   conDB = sqlite3.connect(db_location+db_name)
   cursorDB = conDB.cursor()
 
+  print('Creating the table companies_south..')
   sql_create = '''CREATE TABLE IF NOT EXISTS companies_south (
       cnpj text,
       matriz_filial text,
@@ -35,25 +36,32 @@ def create_table_companies_south():
 
   cursorDB.execute(sql_create)
 
-  sql_insert = '''INSERT INTO companies_south SELECT * FROM (SELECT
-              cnpj,
-              matriz_filial,
-              razao_social,
-              nome_fantasia,
-              cod_nat_juridica,
-              data_inicio_ativ,
-              cnae_fiscal,
-              cep,
-              uf,
-              cod_municipio,
-              municipio,
-              qualif_resp,
-              capital_social,
-              porte,
-              opc_simples,
-              opc_mei
+  # Delete existing data in the table
+  print('Cleaning the table companies_south')
+  sql_delete = 'DELETE FROM companies_south'
+  cursorDB.execute(sql_delete)
 
-            FROM empresas WHERE situacao = "02" AND uf IN("PR","SC","RS"));'''
+  # Inserting the data in the table
+  print('Inserting data in the table companies_south')
+
+  sql_insert = '''INSERT INTO companies_south SELECT * FROM (SELECT
+      cnpj,
+      matriz_filial,
+      razao_social,
+      nome_fantasia,
+      cod_nat_juridica,
+      data_inicio_ativ,
+      cnae_fiscal,
+      cep,
+      uf,
+      cod_municipio,
+      municipio,
+      qualif_resp,
+      capital_social,
+      porte,
+      opc_simples,
+      opc_mei
+    FROM empresas WHERE situacao = "02" AND uf IN("PR","SC","RS"));'''
 
   cursorDB.execute(sql_insert)
 
@@ -77,9 +85,17 @@ def create_table_companies_south():
 def create_table_cities():
   start_time = datetime.datetime.now()
   print(f'Started at {datetime.datetime.now()}')
-  conDB = sqlite3.connect(db_location+db_name)
-  # Create table that will hold data for the IBGE cities
 
+  conDB = sqlite3.connect(db_location+db_name)
+  cursorDB = conDB.cursor()
+
+  sql_select_cities = '''SELECT DISTINCT cod_municipio FROM empresas'''
+
+  # GET THE CITIES
+  # SELECT DISTINCT c.cod_municipio, MIN(m.municipio) AS municipio, MIN(m.uf) AS uf FROM empresas c
+      #INNER JOIN empresas m ON m.cod_municipio = c.cod_municipio; 
+  
+  # Create table that will hold data for the IBGE cities
   sql_create_cities = '''CREATE TABLE IF NOT EXISTS cities (
     uf_code text,
     uf_name text,
@@ -87,16 +103,15 @@ def create_table_cities():
     mesoregion_name text,
     microregion_code text,
     microregion_name text,
+    cod_municipio integer,
     city_code text,
     city_complete_code text,
     city_name text
   );'''
 
-  cursorDB = conDB.cursor()
-
   cursorDB.execute(sql_create_cities)
 
   print(f'Finished at {datetime.datetime.now()}')
+  conDB.close()
 
-
-create_table_companies_south()
+#create_table_companies_south()
