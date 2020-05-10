@@ -89,9 +89,6 @@ def create_table_cities():
   conDB = sqlite3.connect(db_location+db_name)
   cursorDB = conDB.cursor()
 
-  #sql_select_cities = '''SELECT DISTINCT cod_municipio FROM empresas LIMIT 50'''
-  #sql_select_cities = '''SELECT DISTINCT cod_municipio & '|' & municipio & '|' uf  FROM empresas LIMIT 50'''
-
   sql_select_cities = ''' SELECT DISTINCT 
       t0.cod_municipio,
       t1.municipio,
@@ -109,19 +106,16 @@ def create_table_cities():
     LIMIT 100
   '''
 
-  # GET THE CITIES
-  sql_select_cities_name = '''SELECT DISTINCT 
-      c.cod_municipio, 
-      MIN(m.municipio) AS municipio, 
-      MIN(m.uf) AS uf 
-    FROM empresas c
-      INNER JOIN empresas m ON m.cod_municipio = c.cod_municipio
-    LIMIT 10; '''
-
   print('Getting the cities from the companies\' database')
-  cursorDB.execute(sql_select_cities)
-  print(cursorDB.fetchall())
+  #cursorDB.execute(sql_select_cities)
+  #print(cursorDB.fetchall())
   
+  df_cities = pd.read_sql_query(sql_select_cities,conDB)
+  print(df_cities)
+
+  df_cities_ibge = pd.read_csv('assets/cities_brazil.csv')
+  print(df_cities_ibge)
+
   # Create table that will hold data for the IBGE cities
   sql_create_cities = '''CREATE TABLE IF NOT EXISTS cities (
     uf_code text,
@@ -130,7 +124,7 @@ def create_table_cities():
     mesoregion_name text,
     microregion_code text,
     microregion_name text,
-    cod_municipio integer,
+    cod_municipio text,
     city_code text,
     city_complete_code text,
     city_name text
