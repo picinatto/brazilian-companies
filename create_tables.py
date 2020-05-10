@@ -2,6 +2,7 @@ import sqlite3
 import datetime
 import pandas as pd
 import numpy as np
+from unidecode import unidecode
 
 db_location = '/media/sf_share/data/out/'
 db_name = 'CNPJ_full.db'
@@ -91,8 +92,8 @@ def create_table_cities():
 
   sql_select_cities = ''' SELECT DISTINCT 
       t0.cod_municipio,
-      t1.municipio,
-      t1.uf
+      t1.municipio AS city_name,
+      t1.uf AS uf_name
     FROM empresas t0
       INNER JOIN (
         SELECT 
@@ -107,14 +108,24 @@ def create_table_cities():
   '''
 
   print('Getting the cities from the companies\' database')
-  #cursorDB.execute(sql_select_cities)
-  #print(cursorDB.fetchall())
-  
-  df_cities = pd.read_sql_query(sql_select_cities,conDB)
-  print(df_cities)
+  df_cities_companies = pd.read_sql_query(sql_select_cities,conDB)
+  print(df_cities_companies)
 
+  # Get the cities from the IBGE CSV downloaded
+  print('Getting the cities from the IBGE csv')
   df_cities_ibge = pd.read_csv('assets/cities_brazil.csv')
-  print(df_cities_ibge)
+  
+  # Remove special characteres
+  df_cities_ibge_fix = df_cities_ibge['city_name'].apply(lambda x: unidecode(x))
+
+  print(df_cities_ibge_fix)
+
+
+  #print(df_cities_ibge)
+
+  print('Merging the companies cities and IBGE')
+  df_cities = pd.merge(df_cities_ibge,df_cities_companies,how='left',on=['uf_name','city_name'])
+  print(df_cities)
 
   # Create table that will hold data for the IBGE cities
   sql_create_cities = '''CREATE TABLE IF NOT EXISTS cities (
