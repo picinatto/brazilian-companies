@@ -118,14 +118,8 @@ def create_table_cities():
   # Remove special characteres
   df_cities_ibge_fix = df_cities_ibge['city_name'].apply(lambda x: unidecode(x))
 
-  print(df_cities_ibge_fix)
-
-
-  #print(df_cities_ibge)
-
   print('Merging the companies cities and IBGE')
   df_cities = pd.merge(df_cities_ibge,df_cities_companies,how='left',on=['uf_name','city_name'])
-  print(df_cities)
 
   # Create table that will hold data for the IBGE cities
   sql_create_cities = '''CREATE TABLE IF NOT EXISTS cities (
@@ -141,7 +135,14 @@ def create_table_cities():
     city_name text
   );'''
 
-  #cursorDB.execute(sql_create_cities)
+  print('Creating table cities, if not existent')
+  cursorDB.execute(sql_create_cities)
+
+  print('Cleaning the table cities')
+  cursorDB.execute('DELETE FROM cities')
+
+  print('Adding new cities to the table')
+  df_cities.to_sql('cities', con=conDB, if_exists='replace')
 
   print(f'Finished at {datetime.datetime.now()}')
   conDB.close()
