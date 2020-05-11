@@ -102,9 +102,9 @@ def create_table_cities():
           MIN(uf) AS uf
         FROM empresas
           GROUP BY cod_municipio 
-        LIMIT 2000
+        --LIMIT 1300
       ) t1 ON t1.cod_municipio = t0.cod_municipio
-    LIMIT 2000
+    --LIMIT 1300
   '''
 
   print('Getting the cities from the companies\' database')
@@ -147,9 +147,20 @@ def create_table_cities():
   print('Adding new cities to the table')
   df_cities.to_sql('cities', con=conDB, if_exists='replace')
 
+  print('Checking if there was not matched cities')
+  # Join all the cities found by companies with cities found by join city_name|state
   df_cities_not_found = pd.merge(df_cities_companies,df_cities,how='outer',on='cod_municipio')
-  df_cities_not_found.to_csv('cities-not-found.csv')
-  print(df_cities_not_found)
+  # Filter only the cities found by companies and that were not found by the join
+  # Filter only the 'cod_municipio','city_name_x','uf_name_x' columns
+  df_cities_not_found = df_cities_not_found[(df_cities_not_found.cod_municipio.notnull()) & (df_cities_not_found.city_code.isnull())][['cod_municipio','city_name_x','uf_name_x']]
+
+  # Check if there is city(ies) with that were not found in the join
+  if not df_cities_not_found.empty:
+    # Save the result to csv
+    df_cities_not_found.to_csv('assets/cities-not-found.csv')
+    # Print the result to the user
+    print('Some cities that did not match city_name and uf with the IBGE data.')
+    print(df_cities_not_found)
 
   print(f'Finished at {datetime.datetime.now()}')
   conDB.close()

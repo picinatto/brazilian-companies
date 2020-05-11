@@ -258,7 +258,7 @@ uf_code,uf_name,mesoregion_code,mesoregion_name,microregion_code,microregion_nam
 15,PA,2,Marajó,6,Arari,6302,1506302,Salvaterra
 15,PA,3,Metropolitana de Belém,7,Belém,6351,1506351,Santa Bárbara do Pará
 15,PA,2,Marajó,6,Arari,6401,1506401,Santa Cruz do Arari
-15,PA,3,Metropolitana de Belém,8,Castanhal,6500,1506500,Santa Izabel do Pará
+15,PA,3,Metropolitana de Belém,8,Castanhal,6500,1506500,Santa Isabel do Pará
 15,PA,4,Nordeste Paraense,13,Guamá,6559,1506559,Santa Luzia do Pará
 15,PA,6,Sudeste Paraense,22,Conceição do Araguaia,6583,1506583,Santa Maria das Barreiras
 15,PA,4,Nordeste Paraense,10,Bragantina,6609,1506609,Santa Maria do Pará
@@ -591,7 +591,7 @@ uf_code,uf_name,mesoregion_code,mesoregion_name,microregion_code,microregion_nam
 21,MA,1,Norte Maranhense,5,Baixada Maranhense,8306,2108306,Penalva
 21,MA,1,Norte Maranhense,5,Baixada Maranhense,8405,2108405,Peri Mirim
 21,MA,4,Leste Maranhense,15,Codó,8454,2108454,Peritoró
-21,MA,2,Oeste Maranhense,8,Pindaré,8504,2108504,Pindaré-Mirim
+21,MA,2,Oeste Maranhense,8,Pindaré,8504,2108504,Pindaré Mirim
 21,MA,1,Norte Maranhense,5,Baixada Maranhense,8603,2108603,Pinheiro
 21,MA,3,Centro Maranhense,10,Médio Mearim,8702,2108702,Pio XII
 21,MA,1,Norte Maranhense,6,Itapecuru Mirim,8801,2108801,Pirapemas
@@ -1075,7 +1075,7 @@ uf_code,uf_name,mesoregion_code,mesoregion_name,microregion_code,microregion_nam
 23,CE,6,Centro-Sul Cearense,27,Várzea Alegre,14003,2314003,Várzea Alegre
 23,CE,1,Noroeste Cearense,2,Ibiapaba,14102,2314102,Viçosa do Ceará
 24,RN,2,Central Potiguar,12,Seridó Oriental,109,2400109,Acari
-24,RN,1,Oeste Potiguar,4,Vale do Açu,208,2400208,Açu
+24,RN,1,Oeste Potiguar,4,Vale do Açu,208,2400208,Assu
 24,RN,2,Central Potiguar,9,Angicos,307,2400307,Afonso Bezerra
 24,RN,1,Oeste Potiguar,5,Serra de São Miguel,406,2400406,Água Nova
 24,RN,1,Oeste Potiguar,6,Pau dos Ferros,505,2400505,Alexandria
@@ -1481,7 +1481,7 @@ uf_code,uf_name,mesoregion_code,mesoregion_name,microregion_code,microregion_nam
 26,PE,3,Agreste Pernambucano,12,Brejo Pernambucano,1300,2601300,Barra de Guabiraba
 26,PE,4,Mata Pernambucana,15,Mata Meridional Pernambucana,1409,2601409,Barreiros
 26,PE,4,Mata Pernambucana,15,Mata Meridional Pernambucana,1508,2601508,Belém de Maria
-26,PE,2,São Francisco Pernambucano,6,Itaparica,1607,2601607,Belém do São Francisco
+26,PE,2,São Francisco Pernambucano,6,Itaparica,1607,2601607,Belém de São Francisco
 26,PE,3,Agreste Pernambucano,8,Vale do Ipojuca,1706,2601706,Belo Jardim
 26,PE,1,Sertão Pernambucano,4,Sertão do Moxotó,1805,2601805,Betânia
 26,PE,3,Agreste Pernambucano,8,Vale do Ipojuca,1904,2601904,Bezerros
