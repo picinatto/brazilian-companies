@@ -102,21 +102,24 @@ def create_table_cities():
           MIN(uf) AS uf
         FROM empresas
           GROUP BY cod_municipio 
-        LIMIT 100
+        LIMIT 2000
       ) t1 ON t1.cod_municipio = t0.cod_municipio
-    LIMIT 100
+    LIMIT 2000
   '''
 
   print('Getting the cities from the companies\' database')
   df_cities_companies = pd.read_sql_query(sql_select_cities,conDB)
   print(df_cities_companies)
+  df_cities_companies.to_csv('cities-companies.csv')
 
   # Get the cities from the IBGE CSV downloaded
   print('Getting the cities from the IBGE csv')
   df_cities_ibge = pd.read_csv('assets/cities_brazil.csv')
-  
+
+
   # Remove special characteres
-  df_cities_ibge_fix = df_cities_ibge['city_name'].apply(lambda x: unidecode(x))
+  #df_cities_ibge['city_name'] = unidecode(df_cities_ibge['city_name'])
+  df_cities_ibge['city_name'] = [unidecode(x.upper()) for x in df_cities_ibge['city_name']]
 
   print('Merging the companies cities and IBGE')
   df_cities = pd.merge(df_cities_ibge,df_cities_companies,how='left',on=['uf_name','city_name'])
@@ -143,6 +146,10 @@ def create_table_cities():
 
   print('Adding new cities to the table')
   df_cities.to_sql('cities', con=conDB, if_exists='replace')
+
+  df_cities_not_found = pd.merge(df_cities_companies,df_cities,how='outer',on='cod_municipio')
+  df_cities_not_found.to_csv('cities-not-found.csv')
+  print(df_cities_not_found)
 
   print(f'Finished at {datetime.datetime.now()}')
   conDB.close()
