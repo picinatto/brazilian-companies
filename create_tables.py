@@ -115,7 +115,7 @@ def create_table_companies_filtered_state(states_list,status=''):
       num_fax, 
       email, 
       qualif_resp, 
-      CAST((capital_social/100) AS INTEGER), 
+      CAST((capital_social/100) AS INTEGER) AS capital_social, 
       porte, 
       opc_simples, 
       data_opc_simples, 
@@ -134,31 +134,41 @@ def create_table_companies_filtered_state(states_list,status=''):
   # Execute the inserting
   print(f'Inserting data in the table companies_filtered for the state(s) {states}')
   cursorDB.execute(sql_insert)
+  conDB.commit()
 
-  # Creating indexes
-  print('Creating indexes for the companies_filtered..')
-  sql_index = 'CREATE INDEX {} ON {} ({});'.format('ix_cod_municipio', 'companies_filtered', 'cod_municipio')
-  cursorDB.execute(sql_index)
+  indexes = {
+    'cf_cod_municipio': {'table':'companies','column':'cod_municipio'},
+    'cf_cnpj': {'table':'companies','column':'cnpj'},
+    'cf_porte': {'table':'companies','column':'porte'}
+  }
 
-  sql_index = 'CREATE INDEX {} ON {} ({});'.format('ix_nome_municipio', 'companies_filtered', 'municipio')
-  cursorDB.execute(sql_index)
+  for index in indexes:
+    sql_drop_index = f'DROP INDEX {index}'
+    cursorDB.execute(sql_drop_index)
 
-  sql_index = 'CREATE INDEX {} ON {} ({});'.format('ix_cnpj', 'companies_filtered', 'cnpj')
-  cursorDB.execute(sql_index)
-
-  sql_index = 'CREATE INDEX {} ON {} ({});'.format('ix_porte', 'companies_filtered', 'porte')
-  cursorDB.execute(sql_index)
+  for key in indexes:
+    sql_insert_index = f'CREATE INDEX {key} ON {indexes[key]["table"]} ({indexes[key]["column"]})'
+    cursorDB.execute(sql_insert_index)
 
   print(f'Finished at {datetime.datetime.now()}')
   conDB.close()
 
 def create_table_cities():
+  '''
+      Get the cities from the empresas table and match each by the city name and 
+      state code with the IBGE city data. IBGE city data has more levels and is 
+      the Brazilian standard to link cities with systems
+      The function create a table 'cities' with the column 'cod_municipio' that can
+      be linked the empresas on 'cod_municipio' and additional data like meso and 
+      microregion and the city_code for the IBGE system
+  '''
   start_time = datetime.datetime.now()
   print(f'Started at {datetime.datetime.now()}')
 
   conDB = sqlite3.connect(db_location+db_name)
   cursorDB = conDB.cursor()
 
+  # Create the query to get the distinct cities in empresas table
   sql_select_cities = ''' SELECT DISTINCT 
       t0.cod_municipio,
       t1.municipio AS city_name,
@@ -176,24 +186,28 @@ def create_table_cities():
     --LIMIT 50
   '''
 
+  # Select the unique cities from the companies table and store in df_cities_companies
   print('Getting the cities from the companies\' database')
   df_cities_companies = pd.read_sql_query(sql_select_cities,conDB)
-  print(df_cities_companies)
-  df_cities_companies.to_csv('cities-companies.csv')
+  # Write the cities_companies to csv for auditing purpuses
+  df_cities_companies.to_csv('assets/cities-companies.csv')
 
-  # Get the cities from the IBGE CSV downloaded
-  print('Getting the cities from the IBGE csv')
+  # Get the cities from the IBGE CSV downloaded from the following link:
+  # https://ibge.gov.br/explica/codigos-dos-municipio.php
+  # PS: some cities have wrong names, so I fixed the csv file, to
+  #   get same results use the file 'cities_brazi.csv' in assets folder
+  print('Getting the cities from the IBGE csv file')
   df_cities_ibge = pd.read_csv('assets/cities_brazil.csv',dtype='str')
 
-
-  # Remove special characteres
-  #df_cities_ibge['city_name'] = unidecode(df_cities_ibge['city_name'])
+  # Remove Brazilian-Portuguese accents and special characteres for the city_name to 
+  #  match the IBGE unicode format
   df_cities_ibge['city_name'] = [unidecode(x.upper()) for x in df_cities_ibge['city_name']]
 
+  # Merge the tables by the uf and city name
   print('Merging the companies cities and IBGE')
   df_cities = pd.merge(df_cities_ibge,df_cities_companies,how='left',on=['uf_name','city_name'])
 
-  # Create table that will hold data for the IBGE cities
+  # Create table that will hold data for the cities
   sql_create_cities = '''CREATE TABLE IF NOT EXISTS cities (
     uf_code text,
     uf_name text,
@@ -210,12 +224,15 @@ def create_table_cities():
   print('Creating table cities, if not existent')
   cursorDB.execute(sql_create_cities)
 
+  # Clean the table cities to not duplicate records
   print('Cleaning the table cities')
   cursorDB.execute('DELETE FROM cities')
 
+  # Insert the cities to the city table
   print('Adding new cities to the table')
   df_cities.to_sql('cities', con=conDB, if_exists='replace')
 
+  # Check if there is cities that were not matched by the uf and city_name
   print('Checking if there was not matched cities')
   # Join all the cities found by companies with cities found by join city_name|state
   df_cities_not_found = pd.merge(df_cities_companies,df_cities,how='outer',on='cod_municipio')
@@ -233,8 +250,9 @@ def create_table_cities():
   else:
     print('There was no not matched cities')
 
+  # Finish the process
   print(f'Finished at {datetime.datetime.now()}')
   conDB.close()
 
-create_table_companies_filtered_state(['SC'])
+create_table_companies_filtered_state(['PR','SC','RS'])
 #create_table_cities()
