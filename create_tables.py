@@ -7,77 +7,146 @@ from unidecode import unidecode
 db_location = '/media/sf_share/data/out/'
 db_name = 'CNPJ_full.db'
 
-def create_table_companies_south():
+def create_table_companies_filtered_state(states_list,status=''):
+  ''' 
+    Creates a table and add data on SQLITE with filtered data for the states listed as params
+      to reduce the size of the dataset and time for querying
+    Receives a list of states as parameter and by default only active companies are saved. If 
+      needs all companies, pass any string as second argument
+  '''
+
   start_time = datetime.datetime.now()
   print(f'Started at {datetime.datetime.now()}')
   
   conDB = sqlite3.connect(db_location+db_name)
   cursorDB = conDB.cursor()
 
-  print('Creating the table companies_south..')
-  sql_create = '''CREATE TABLE IF NOT EXISTS companies_south (
-      cnpj text,
-      matriz_filial text,
-      razao_social text,
-      nome_fantasia text,
-      cod_nat_juridica text,
-      data_inicio_ativ text,
-      cnae_fiscal text,
-      cep text,
-      uf text,
-      cod_municipio text,
-      municipio text,
-      qualif_resp text,
-      capital_social text,
-      porte text,
-      opc_simples text,
-      opc_mei text
+  print(f'Creating the table companies_filtered if not exists..')
+  sql_create = '''CREATE TABLE IF NOT EXISTS companies_filtered (
+      cnpj text, 
+      matriz_filial text, 
+      razao_social text, 
+      nome_fantasia text, 
+      situacao text, 
+      data_situacao text, 
+      motivo_situacao text, 
+      nm_cidade_exterior text,
+      cod_pais text, 
+      nome_pais text, 
+      cod_nat_juridica text, 
+      data_inicio_ativ text, 
+      cnae_fiscal text, 
+      tipo_logradouro text, 
+      logradouro text, 
+      numero text, 
+      complemento text, 
+      bairro text, 
+      cep text, 
+      uf text, 
+      cod_municipio text, 
+      municipio text, 
+      ddd_1 text, 
+      telefone_1 text, 
+      ddd_2 text, 
+      telefone_2 text, 
+      ddd_fax text, 
+      num_fax text, 
+      email text, 
+      qualif_resp text, 
+      capital_social integer, 
+      porte text, 
+      opc_simples text, 
+      data_opc_simples text, 
+      data_exc_simples text, 
+      opc_mei text, 
+      sit_especial text, 
+      data_sit_especial
       );
    '''
 
   cursorDB.execute(sql_create)
 
   # Delete existing data in the table
-  print('Cleaning the table companies_south')
-  sql_delete = 'DELETE FROM companies_south'
+  print('Cleaning the table companies_filtered')
+  sql_delete = 'DELETE FROM companies_filtered'
   cursorDB.execute(sql_delete)
 
+
+  # Initialize the variable that will hold a string with all the states
+  states = ''
+  # Iterate each item in the list and convert to a string
+  for state in states_list:
+    states += '"' + state + '",'
+  # Remove the last comma from the string
+  states = states[:-1]
+
+
   # Inserting the data in the table
-  print('Inserting data in the table companies_south')
+  print('Creating the insert statement')
 
-  sql_insert = '''INSERT INTO companies_south SELECT * FROM (SELECT
-      cnpj,
-      matriz_filial,
-      razao_social,
-      nome_fantasia,
-      cod_nat_juridica,
-      data_inicio_ativ,
-      cnae_fiscal,
-      cep,
-      uf,
-      cod_municipio,
-      municipio,
-      qualif_resp,
-      capital_social,
-      porte,
-      opc_simples,
-      opc_mei
-    FROM empresas WHERE situacao = "02" AND uf IN("PR","SC","RS"));'''
+  sql_insert = f'''INSERT INTO companies_filtered SELECT * FROM (SELECT
+      cnpj, 
+      matriz_filial, 
+      razao_social, 
+      nome_fantasia, 
+      situacao, 
+      data_situacao, 
+      motivo_situacao, 
+      nm_cidade_exterior,
+      cod_pais, 
+      nome_pais, 
+      cod_nat_juridica, 
+      data_inicio_ativ, 
+      cnae_fiscal, 
+      tipo_logradouro, 
+      logradouro, 
+      numero, 
+      complemento, 
+      bairro, 
+      cep, 
+      uf, 
+      cod_municipio, 
+      municipio, 
+      ddd_1, 
+      telefone_1, 
+      ddd_2, 
+      telefone_2, 
+      ddd_fax, 
+      num_fax, 
+      email, 
+      qualif_resp, 
+      CAST((capital_social/100) AS INTEGER), 
+      porte, 
+      opc_simples, 
+      data_opc_simples, 
+      data_exc_simples, 
+      opc_mei, 
+      sit_especial, 
+      data_sit_especial
+      FROM empresas WHERE uf IN({states}));'''
+  
+  # Checking if a string was added to status, if not add the filter condition
+  #   to get only the Active companies (situacao == '02')
+  if not status:
+    sql_insert = sql_insert[:-2]
+    sql_insert += ' AND situacao = "02");'
 
+  # Execute the inserting
+  print(f'Inserting data in the table companies_filtered for the state(s) {states}')
   cursorDB.execute(sql_insert)
 
   # Creating indexes
-  print('Creating indexes..')
-  sql_index = 'CREATE INDEX {} ON {} ({});'.format('ix_cod_municipio', 'companies_south', 'cod_municipio')
+  print('Creating indexes for the companies_filtered..')
+  sql_index = 'CREATE INDEX {} ON {} ({});'.format('ix_cod_municipio', 'companies_filtered', 'cod_municipio')
   cursorDB.execute(sql_index)
 
-  sql_index = 'CREATE INDEX {} ON {} ({});'.format('ix_nome_municipio', 'companies_south', 'municipio')
+  sql_index = 'CREATE INDEX {} ON {} ({});'.format('ix_nome_municipio', 'companies_filtered', 'municipio')
   cursorDB.execute(sql_index)
 
-  sql_index = 'CREATE INDEX {} ON {} ({});'.format('ix_cnpj', 'companies_south', 'cnpj')
+  sql_index = 'CREATE INDEX {} ON {} ({});'.format('ix_cnpj', 'companies_filtered', 'cnpj')
   cursorDB.execute(sql_index)
 
-  sql_index = 'CREATE INDEX {} ON {} ({});'.format('ix_porte', 'companies_south', 'porte')
+  sql_index = 'CREATE INDEX {} ON {} ({});'.format('ix_porte', 'companies_filtered', 'porte')
   cursorDB.execute(sql_index)
 
   print(f'Finished at {datetime.datetime.now()}')
@@ -102,9 +171,9 @@ def create_table_cities():
           MIN(uf) AS uf
         FROM empresas
           GROUP BY cod_municipio 
-        --LIMIT 1300
+        --LIMIT 50
       ) t1 ON t1.cod_municipio = t0.cod_municipio
-    --LIMIT 1300
+    --LIMIT 50
   '''
 
   print('Getting the cities from the companies\' database')
@@ -114,7 +183,7 @@ def create_table_cities():
 
   # Get the cities from the IBGE CSV downloaded
   print('Getting the cities from the IBGE csv')
-  df_cities_ibge = pd.read_csv('assets/cities_brazil.csv')
+  df_cities_ibge = pd.read_csv('assets/cities_brazil.csv',dtype='str')
 
 
   # Remove special characteres
@@ -161,9 +230,11 @@ def create_table_cities():
     # Print the result to the user
     print('Some cities that did not match city_name and uf with the IBGE data.')
     print(df_cities_not_found)
+  else:
+    print('There was no not matched cities')
 
   print(f'Finished at {datetime.datetime.now()}')
   conDB.close()
 
-#create_table_companies_south()
-create_table_cities()
+create_table_companies_filtered_state(['SC'])
+#create_table_cities()
