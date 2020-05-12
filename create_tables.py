@@ -136,14 +136,15 @@ def create_table_companies_filtered_state(states_list,status=''):
   cursorDB.execute(sql_insert)
   conDB.commit()
 
+  print('Creating indexes for the companies_filtered table')
   indexes = {
-    'cf_cod_municipio': {'table':'companies','column':'cod_municipio'},
-    'cf_cnpj': {'table':'companies','column':'cnpj'},
-    'cf_porte': {'table':'companies','column':'porte'}
+    'cf_cod_municipio': {'table':'companies_filtered','column':'cod_municipio'},
+    'cf_cnpj': {'table':'companies_filtered','column':'cnpj'},
+    'cf_porte': {'table':'companies_filtered','column':'porte'}
   }
 
   for index in indexes:
-    sql_drop_index = f'DROP INDEX {index}'
+    sql_drop_index = f'DROP INDEX IF EXISTS {index}'
     cursorDB.execute(sql_drop_index)
 
   for key in indexes:
