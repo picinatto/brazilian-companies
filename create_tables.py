@@ -90,6 +90,13 @@ def create_table_companies_filtered_state(states_list,status=''):
   # Inserting the data in the table
   print(f'Creating the insert statement in the table {table_name} on DB {new_db_name}')
 
+  
+  
+  
+  #TODO: Remove the CNAE_FISCAL is already in the table cnaes
+
+
+
   sql_insert = f'''INSERT INTO {table_name} SELECT * FROM (SELECT
       cnpj, 
       matriz_filial, 
@@ -157,11 +164,33 @@ def create_table_companies_filtered_state(states_list,status=''):
     sql_insert_index = f'CREATE INDEX {key} ON {indexes[key]["table"]} ({indexes[key]["column"]})'
     cursorDB_new.execute(sql_insert_index)
 
+  # Creating dataframe to get each CNPJ to process the cnaes
+  df_cnpjs = pd.read_sql(f'SELECT cnpj, cnae_fiscal FROM {table_name}',conDB_new)
+  # Get the cnaes for the filtered companies
+  cnaes = get_cnaes(conDB_new, df_cnpjs)
+
+  # TODO: save the data on the database..
+
   print(f'Finished at {datetime.datetime.now()}')
   conDB_new.close()
 
-def create_table_cnaes(cnpjs):
-  # Get
+def get_cnaes(cnpjs):
+  '''
+    Receives the filtered cnpjs as a df
+    Join then with cnaes_secundario to remove the one that are not filtered/selected
+  '''
+  # 
+  # 
+  conDB = sqlite3.connect(db_location+db_name)
+  df_all_cnaes = pd.read_sql_table('cnaes')
+
+  df_cnaes = pd.merge(cnpjs, df_all_cnaes, how='inner', on='cnpj')
+
+  # TODO: see how to move the column cnae fiscal to a line on df_all_cnaes
+  return df_cnaes
+  
+
+
 
 def create_table_cities():
   '''
