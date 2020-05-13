@@ -6,6 +6,8 @@ from unidecode import unidecode
 
 db_location = '/media/sf_share/data/out/'
 db_name = 'CNPJ_full.db'
+new_db_location = db_location
+new_db_name = 'companies'
 
 def create_table_companies_filtered_state(states_list,status=''):
   ''' 
@@ -14,15 +16,19 @@ def create_table_companies_filtered_state(states_list,status=''):
     Receives a list of states as parameter and by default only active companies are saved. If 
       needs all companies, pass any string as second argument
   '''
-
+  table_name = 'companies'
   start_time = datetime.datetime.now()
   print(f'Started at {datetime.datetime.now()}')
-  
-  conDB = sqlite3.connect(db_location+db_name)
-  cursorDB = conDB.cursor()
 
-  print(f'Creating the table companies_filtered if not exists..')
-  sql_create = '''CREATE TABLE IF NOT EXISTS companies_filtered (
+  # Create the new database if does not exists
+  conDB_new = sqlite3.connect(new_db_location+new_db_name)
+  cursorDB_new = conDB_new.cursor()
+
+  # Attach new database to the old one
+  conDB_new.execute(f"ATTACH '{db_location}.{db_name}' AS {db_name};")
+
+  print(f'Creating the table {table_name} if not exists in database {new_db_name}..')
+  sql_create = f'''CREATE TABLE IF NOT EXISTS {table_name} (
       cnpj text, 
       matriz_filial text, 
       razao_social text, 
@@ -64,12 +70,12 @@ def create_table_companies_filtered_state(states_list,status=''):
       );
    '''
 
-  cursorDB.execute(sql_create)
+  cursorDB_new.execute(sql_create)
 
   # Delete existing data in the table
-  print('Cleaning the table companies_filtered')
-  sql_delete = 'DELETE FROM companies_filtered'
-  cursorDB.execute(sql_delete)
+  print(f'Cleaning the table {table_name}')
+  sql_delete = f'DELETE FROM {table_name}'
+  cursorDB_new.execute(sql_delete)
 
 
   # Initialize the variable that will hold a string with all the states
@@ -82,9 +88,9 @@ def create_table_companies_filtered_state(states_list,status=''):
 
 
   # Inserting the data in the table
-  print('Creating the insert statement')
+  print(f'Creating the insert statement in the table {table_name} on DB {new_db_name}')
 
-  sql_insert = f'''INSERT INTO companies_filtered SELECT * FROM (SELECT
+  sql_insert = f'''INSERT INTO {table_name} SELECT * FROM (SELECT
       cnpj, 
       matriz_filial, 
       razao_social, 
@@ -123,7 +129,7 @@ def create_table_companies_filtered_state(states_list,status=''):
       opc_mei, 
       sit_especial, 
       data_sit_especial
-      FROM empresas WHERE uf IN({states}));'''
+      FROM {db_name}.empresas WHERE uf IN({states}));'''
   
   # Checking if a string was added to status, if not add the filter condition
   #   to get only the Active companies (situacao == '02')
@@ -132,27 +138,30 @@ def create_table_companies_filtered_state(states_list,status=''):
     sql_insert += ' AND situacao = "02");'
 
   # Execute the inserting
-  print(f'Inserting data in the table companies_filtered for the state(s) {states}')
-  cursorDB.execute(sql_insert)
-  conDB.commit()
+  print(f'Inserting data in the table {table_name} DB {new_db_name} for the state(s) {states}')
+  cursorDB_new.execute(sql_insert)
+  conDB_new.commit()
 
-  print('Creating indexes for the companies_filtered table')
+  print(f'Creating indexes for the {table_name} table')
   indexes = {
-    'cf_cod_municipio': {'table':'companies_filtered','column':'cod_municipio'},
-    'cf_cnpj': {'table':'companies_filtered','column':'cnpj'},
-    'cf_porte': {'table':'companies_filtered','column':'porte'}
+    f'{table_name}_cod_municipio': {'table':f'{table_name}','column':'cod_municipio'},
+    f'{table_name}_cnpj': {'table':f'{table_name}','column':'cnpj'},
+    f'{table_name}_porte': {'table':f'{table_name}','column':'porte'}
   }
 
   for index in indexes:
     sql_drop_index = f'DROP INDEX IF EXISTS {index}'
-    cursorDB.execute(sql_drop_index)
+    cursorDB_new.execute(sql_drop_index)
 
   for key in indexes:
     sql_insert_index = f'CREATE INDEX {key} ON {indexes[key]["table"]} ({indexes[key]["column"]})'
-    cursorDB.execute(sql_insert_index)
+    cursorDB_new.execute(sql_insert_index)
 
   print(f'Finished at {datetime.datetime.now()}')
-  conDB.close()
+  conDB_new.close()
+
+def create_table_cnaes(cnpjs):
+  # Get
 
 def create_table_cities():
   '''
@@ -181,10 +190,8 @@ def create_table_cities():
           MIN(municipio) As municipio,
           MIN(uf) AS uf
         FROM empresas
-          GROUP BY cod_municipio 
-        --LIMIT 50
+          GROUP BY cod_municipio
       ) t1 ON t1.cod_municipio = t0.cod_municipio
-    --LIMIT 50
   '''
 
   # Select the unique cities from the companies table and store in df_cities_companies
@@ -256,4 +263,4 @@ def create_table_cities():
   conDB.close()
 
 create_table_companies_filtered_state(['PR','SC','RS'])
-#create_table_cities()
+create_table_cities()
