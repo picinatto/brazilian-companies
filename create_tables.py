@@ -41,7 +41,8 @@ def create_table_companies_filtered_state(states_list,status=''):
       cod_pais text, 
       nome_pais text, 
       cod_nat_juridica text, 
-      data_inicio_ativ text,  
+      data_inicio_ativ text, 
+      cnae_fiscal text, 
       tipo_logradouro text, 
       logradouro text, 
       numero text, 
@@ -78,6 +79,7 @@ def create_table_companies_filtered_state(states_list,status=''):
   
   cursorDB_new.execute(sql_delete)
 
+
   # Initialize the variable that will hold a string with all the states
   states = ''
   # Iterate each item in the list and convert to a string
@@ -85,7 +87,6 @@ def create_table_companies_filtered_state(states_list,status=''):
     states += '"' + state + '",'
   # Remove the last comma from the string
   states = states[:-1]
-
 
   # Inserting the data in the table
   print(f'Creating the insert statement in the table {table_name} on DB {new_db_name}')
@@ -103,6 +104,7 @@ def create_table_companies_filtered_state(states_list,status=''):
       nome_pais, 
       cod_nat_juridica, 
       data_inicio_ativ, 
+      cnae_fiscal, 
       tipo_logradouro, 
       logradouro, 
       numero, 
@@ -194,6 +196,8 @@ def create_table_companies_filtered_state(states_list,status=''):
   for key in indexes:
     sql_insert_index = f'CREATE INDEX {key} ON {indexes[key]["table"]} ({indexes[key]["column"]})'
     cursorDB_new.execute(sql_insert_index)
+
+  #TODO: Get the stockholders data
 
   print(f'Finished at {datetime.datetime.now()}')
   conDB_new.close()
