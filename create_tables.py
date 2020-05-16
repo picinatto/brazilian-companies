@@ -162,11 +162,11 @@ def create_table_companies_filtered_state(states_list,status=''):
 
   for index in indexes:
     sql_drop_index = f'DROP INDEX IF EXISTS {index}'
-    #cursorDB_new.execute(sql_drop_index)
+    cursorDB_new.execute(sql_drop_index)
 
   for key in indexes:
     sql_insert_index = f'CREATE INDEX {key} ON {indexes[key]["table"]} ({indexes[key]["column"]})'
-    #cursorDB_new.execute(sql_insert_index)
+    cursorDB_new.execute(sql_insert_index)
 
   print('Getting data for the cnpjs filtered and the main cnae')
   # Creating dataframe to get each CNPJ to process the cnaes
@@ -192,7 +192,9 @@ def create_table_companies_filtered_state(states_list,status=''):
   cursorDB_new.execute(sql_delete_cnaes)
 
   print(f'Saving the cnaes data in the database {new_db_name}')
-  df_cnaes.to_sql('cnaes', con=conDB_new, if_exists='replace')
+  df_cnaes.to_sql('cnaes', con=conDB_new, if_exists='replace',index=False)
+
+  # TODO: ADD indexes
 
   print(f'Finished at {datetime.datetime.now()}')
   conDB_new.close()
@@ -224,14 +226,13 @@ def get_cnaes(cnpjs):
 
   # Adding 1 to the cnae ordem to fix the cnae_fiscal that was on cnpjs table
   df_all_cnaes['cnae_ordem'] = [cnae_ordem + 1 for cnae_ordem in df_all_cnaes['cnae_ordem']]
-  
+
+  print('Appending the data from both dataframes')  
   #Appending the two dataframes...
-  df_all_cnaes.append(cnpjs)
+  df_cnaes = pd.concat([df_all_cnaes,cnpjs],ignore_index=True)
+  #df_all_cnaes.append(cnpjs, ignore_index=True, verify_integrity=False)
 
-  #df_cnaes = pd.merge(cnpjs, df_all_cnaes, how='inner', on='cnpj')
-
-  # TODO: see how to move the column cnae fiscal to a line on df_all_cnaes
-  return df_all_cnaes
+  return df_cnaes
 
 
 def create_table_cities():
