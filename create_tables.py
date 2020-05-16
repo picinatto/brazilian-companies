@@ -167,7 +167,7 @@ def create_table_companies_filtered_state(states_list,status=''):
   # Creating dataframe to get each CNPJ to process the cnaes
   df_cnpjs = pd.read_sql(f'SELECT cnpj, cnae_fiscal FROM {table_name}',conDB_new)
   # Get the cnaes for the filtered companies
-  df_cnaes = get_cnaes(conDB_new, df_cnpjs)
+  df_cnaes = get_cnaes(df_cnpjs)
 
   # TODO: Create the table cnaes if not exists and delete the existent data
 
@@ -185,6 +185,11 @@ def get_cnaes(cnpjs):
   '''
   conDB = sqlite3.connect(db_location+db_name)
   df_all_cnaes = pd.read_sql_table('cnaes')
+
+  # Adjusting the CNPJ table to be identical to cnaes table
+  cnpjs.rename(columns={'cnae_fiscal':'cnae'})
+  cnpjs['cnae_ordem'] = 0
+  
 
   df_cnaes = pd.merge(cnpjs, df_all_cnaes, how='inner', on='cnpj')
 
