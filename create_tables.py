@@ -162,21 +162,37 @@ def create_table_companies_filtered_state(states_list,status=''):
 
   for index in indexes:
     sql_drop_index = f'DROP INDEX IF EXISTS {index}'
-    cursorDB_new.execute(sql_drop_index)
+    #cursorDB_new.execute(sql_drop_index)
 
   for key in indexes:
     sql_insert_index = f'CREATE INDEX {key} ON {indexes[key]["table"]} ({indexes[key]["column"]})'
-    cursorDB_new.execute(sql_insert_index)
+    #cursorDB_new.execute(sql_insert_index)
 
+  print('Getting data for the cnpjs filtered and the main cnae')
   # Creating dataframe to get each CNPJ to process the cnaes
-  df_cnpjs = pd.read_sql(f'SELECT cnpj, cnae_fiscal FROM {table_name}',conDB_new)
+  df_cnpjs = pd.read_sql(f'SELECT cnpj, cnae_fiscal FROM {table_name}', conDB_new)
   # Get the cnaes for the filtered companies
+  print('Start the process of getting all the cnaes for each company')
   df_cnaes = get_cnaes(df_cnpjs)
 
-  # TODO: Create the table cnaes if not exists and delete the existent data
-  print(df_cnaes)
-  # Persist the data to the databaseas
-  #df_cnaes.to_sql('cnaes', con=conDB_new, if_exists='replace')
+  print(f'Creating the table cnaes if not exists in database {new_db_name}..')
+  sql_create_cnaes = f'''CREATE TABLE IF NOT EXISTS cnaes (
+      cnpj text, 
+      cnae_ordem integer,
+      cnae text
+      );
+   '''
+
+  cursorDB_new.execute(sql_create_cnaes)
+
+  # Delete existing data in the table
+  print(f'Cleaning the table cnaes')
+  sql_delete_cnaes = f'DELETE FROM cnaes'
+
+  cursorDB_new.execute(sql_delete_cnaes)
+
+  print(f'Saving the cnaes data in the database {new_db_name}')
+  df_cnaes.to_sql('cnaes', con=conDB_new, if_exists='replace')
 
   print(f'Finished at {datetime.datetime.now()}')
   conDB_new.close()
@@ -187,14 +203,24 @@ def get_cnaes(cnpjs):
     Join then with cnaes_secundario to remove the one that are not filtered/selected
     Returns a Pandas Data Frame with CNPJ and CNAES
   '''
+  print('Getting the unique CNPJs filtered')
+  # Initialize the variable that will hold a string with all the cnpjs
+  cnpj_list = ''
+  # Iterate each item in the list and convert to a string
+  for key, value in cnpjs.iterrows():
+    cnpj_list += '"' + value[0] + '",'
+  # Remove the last comma from the string
+  cnpj_list = cnpj_list[:-1]
+
+  print(f'Getting the data from the secondary cnaes in the DB {db_name}')
   conDB = sqlite3.connect(db_location+db_name)
-  df_all_cnaes = pd.read_sql_table('cnaes')
+  df_all_cnaes = pd.read_sql(f'SELECT * FROM cnaes_secundarios WHERE cnpj IN({cnpj_list});', conDB)
 
   # Adjusting the CNPJ table to be identical to cnaes table
-  cnpjs.rename(columns={'cnae_fiscal':'cnae'})
+  cnpjs.rename(columns={'cnae_fiscal':'cnae'}, inplace=True)
   cnpjs['cnae_ordem'] = 0
   # Reordering the columns
-  cnpjs[['cnpj','cnae_ordem','cnae']]
+  cnpjs = cnpjs[['cnpj','cnae_ordem','cnae']]
 
   # Adding 1 to the cnae ordem to fix the cnae_fiscal that was on cnpjs table
   df_all_cnaes['cnae_ordem'] = [cnae_ordem + 1 for cnae_ordem in df_all_cnaes['cnae_ordem']]
@@ -307,5 +333,5 @@ def create_table_cities():
   print(f'Finished at {datetime.datetime.now()}')
   conDB.close()
 
-create_table_companies_filtered_state(['SC'])
+create_table_companies_filtered_state(['AP'])
 #create_table_cities()
