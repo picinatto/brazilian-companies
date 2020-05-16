@@ -170,9 +170,9 @@ def create_table_companies_filtered_state(states_list,status=''):
   df_cnaes = get_cnaes(df_cnpjs)
 
   # TODO: Create the table cnaes if not exists and delete the existent data
-
+  print(df_cnaes)
   # Persist the data to the databaseas
-  df_cnaes.to_sql('cnaes', con=conDB_new, if_exists='replace')
+  #df_cnaes.to_sql('cnaes', con=conDB_new, if_exists='replace')
 
   print(f'Finished at {datetime.datetime.now()}')
   conDB_new.close()
@@ -189,12 +189,19 @@ def get_cnaes(cnpjs):
   # Adjusting the CNPJ table to be identical to cnaes table
   cnpjs.rename(columns={'cnae_fiscal':'cnae'})
   cnpjs['cnae_ordem'] = 0
-  
+  # Reordering the columns
+  cnpjs[['cnpj','cnae_ordem','cnae']]
 
-  df_cnaes = pd.merge(cnpjs, df_all_cnaes, how='inner', on='cnpj')
+  # Adding 1 to the cnae ordem to fix the cnae_fiscal that was on cnpjs table
+  df_all_cnaes['cnae_ordem'] = [cnae_ordem + 1 for cnae_ordem in df_all_cnaes['cnae_ordem']]
+  
+  #Appending the two dataframes...
+  df_all_cnaes.append(cnpjs)
+
+  #df_cnaes = pd.merge(cnpjs, df_all_cnaes, how='inner', on='cnpj')
 
   # TODO: see how to move the column cnae fiscal to a line on df_all_cnaes
-  return df_cnaes
+  return df_all_cnaes
 
 
 def create_table_cities():
