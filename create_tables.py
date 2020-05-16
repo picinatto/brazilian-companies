@@ -4,8 +4,6 @@ import pandas as pd
 import numpy as np
 from unidecode import unidecode
 
-
-
 db_location = '/media/sf_share/data/out/'
 db_name = 'CNPJ_full.db'
 db_short_name = 'CNPJ_full'
@@ -43,8 +41,7 @@ def create_table_companies_filtered_state(states_list,status=''):
       cod_pais text, 
       nome_pais text, 
       cod_nat_juridica text, 
-      data_inicio_ativ text, 
-      cnae_fiscal text, 
+      data_inicio_ativ text,  
       tipo_logradouro text, 
       logradouro text, 
       numero text, 
@@ -81,7 +78,6 @@ def create_table_companies_filtered_state(states_list,status=''):
   
   cursorDB_new.execute(sql_delete)
 
-
   # Initialize the variable that will hold a string with all the states
   states = ''
   # Iterate each item in the list and convert to a string
@@ -93,13 +89,6 @@ def create_table_companies_filtered_state(states_list,status=''):
 
   # Inserting the data in the table
   print(f'Creating the insert statement in the table {table_name} on DB {new_db_name}')
-
-  
-  
-  
-  #TODO: Remove the CNAE_FISCAL is already in the table cnaes
-
-
 
   sql_insert = f'''INSERT INTO {table_name} SELECT * FROM (SELECT
       cnpj, 
@@ -114,7 +103,6 @@ def create_table_companies_filtered_state(states_list,status=''):
       nome_pais, 
       cod_nat_juridica, 
       data_inicio_ativ, 
-      cnae_fiscal, 
       tipo_logradouro, 
       logradouro, 
       numero, 
