@@ -194,7 +194,18 @@ def create_table_companies_filtered_state(states_list,status=''):
   print(f'Saving the cnaes data in the database {new_db_name}')
   df_cnaes.to_sql('cnaes', con=conDB_new, if_exists='replace',index=False)
 
-  # TODO: ADD indexes
+  print(f'Creating indexes for the cnaes table')
+  indexes = {
+    'cnaes_cnpj': {'table':'cnaes','column':'cnpj'},
+  }
+
+  for index in indexes:
+    sql_drop_index = f'DROP INDEX IF EXISTS {index}'
+    cursorDB_new.execute(sql_drop_index)
+
+  for key in indexes:
+    sql_insert_index = f'CREATE INDEX {key} ON {indexes[key]["table"]} ({indexes[key]["column"]})'
+    cursorDB_new.execute(sql_insert_index)
 
   print(f'Finished at {datetime.datetime.now()}')
   conDB_new.close()
@@ -334,5 +345,5 @@ def create_table_cities():
   print(f'Finished at {datetime.datetime.now()}')
   conDB.close()
 
-create_table_companies_filtered_state(['AP'])
+create_table_companies_filtered_state(['SC'])
 #create_table_cities()
