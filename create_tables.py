@@ -4,8 +4,11 @@ import pandas as pd
 import numpy as np
 from unidecode import unidecode
 
+
+
 db_location = '/media/sf_share/data/out/'
 db_name = 'CNPJ_full.db'
+db_short_name = 'CNPJ_full'
 new_db_location = db_location
 new_db_name = 'companies'
 
@@ -25,7 +28,7 @@ def create_table_companies_filtered_state(states_list,status=''):
   cursorDB_new = conDB_new.cursor()
 
   # Attach new database to the old one
-  conDB_new.execute(f"ATTACH '{db_location}.{db_name}' AS {db_name};")
+  conDB_new.execute(f"ATTACH '{db_location}{db_name}' AS '{db_short_name}';")
 
   print(f'Creating the table {table_name} if not exists in database {new_db_name}..')
   sql_create = f'''CREATE TABLE IF NOT EXISTS {table_name} (
@@ -75,6 +78,7 @@ def create_table_companies_filtered_state(states_list,status=''):
   # Delete existing data in the table
   print(f'Cleaning the table {table_name}')
   sql_delete = f'DELETE FROM {table_name}'
+  
   cursorDB_new.execute(sql_delete)
 
 
@@ -136,7 +140,7 @@ def create_table_companies_filtered_state(states_list,status=''):
       opc_mei, 
       sit_especial, 
       data_sit_especial
-      FROM {db_name}.empresas WHERE uf IN({states}));'''
+      FROM {db_short_name}.empresas WHERE uf IN({states}));'''
   
   # Checking if a string was added to status, if not add the filter condition
   #   to get only the Active companies (situacao == '02')
@@ -303,5 +307,5 @@ def create_table_cities():
   print(f'Finished at {datetime.datetime.now()}')
   conDB.close()
 
-create_table_companies_filtered_state(['PR','SC','RS'])
-create_table_cities()
+create_table_companies_filtered_state(['SC'])
+#create_table_cities()
