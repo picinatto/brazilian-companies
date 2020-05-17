@@ -19,25 +19,41 @@ def run():
     active_companies = input('Would like only active companies (y / n)?: ').lower()
 
   # TODO: Filter states
+  # TODO: Filter only headquarters
 
   print(export_format)
   print(active_companies)
 
   print('Starting the exporting process...')
-  export_data(export_format)
+  export_data(export_format, active_companies)
 
-def export_data(export_format):
+def export_data(export_format, active_companies):
   # Connect to the database to get the data that is going to be exported
   conDB_new = sqlite3.connect(new_db_location+new_db_name)
-  exported_path = 'exports/companies.csv'
   
   # Getting the data from the table companies
   print('Getting the data from the database..')
-  df_companies = pd.read_sql('SELECT * FROM companies;', conDB_new)
+  sql_select = 'SELECT * FROM companies'
 
+  # Using logic to filter data as asked
+  if active_companies == 'y':
+    sql_select += ' WHERE situacao_cadastral = "02"'
+  else:
+    sql_select += ';'
 
-  print('Exporting to csv')
-  df_companies.to_csv(exported_path)
+  df_companies = pd.read_sql(sql_select, conDB_new)
+
+  if export_format == 'csv':
+    print('Exporting to csv')
+    exported_path = 'exports/companies.csv'
+    df_companies.to_csv(exported_path)
+  elif export_format == 'sqlite': 
+    print('Exporting to sql')
+    exported_path = 'exports/companies.db'
+    # TODO: Add the logic to save to sqlite
+    df_companies.to_sql()
+  else:
+    print('No correct export format was found..')
 
   print(f'Process finished. The file was saved in: {exported_path}')
 
