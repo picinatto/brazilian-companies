@@ -26,7 +26,7 @@ def run():
   # Ask the user if wants only headquarters (matriz)
   remove_mei = ''
   while remove_mei not in ['y', 'n']:
-    remove_mei = input('Would to remove MEI (Micro Entrepreneurs) (y / n)?: ').lower()
+    remove_mei = input('Would you like to remove MEI (Micro Entrepreneurs) (y / n)?: ').lower()
 
   # TODO: Filter states
 
@@ -74,11 +74,14 @@ def export_data(export_format, active_companies, headquarter, remove_mei):
 
   df_cnaes = pd.read_sql(f'SELECT * FROM cnaes WHERE cnpj IN({cnpj_list})', conDB_new)
 
+  df_cities = pd.read_sql('SELECT * FROM cities', conDB_new)
+
   if export_format == 'csv':
     print('Exporting to csv')
     exported_path = 'exports/'
     df_companies.to_csv(exported_path+'companies.csv')
     df_cnaes.to_csv(exported_path+'cnaes.csv')
+    df_cities.to_csv(exported_path+'cities.csv')
   elif export_format == 'sqlite': 
     print('Exporting to sql')
     exported_path = 'exports/companies.db'
