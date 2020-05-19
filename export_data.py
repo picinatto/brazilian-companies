@@ -23,13 +23,18 @@ def run():
   while headquarter not in ['y', 'n']:
     headquarter = input('Would like only the companies headquarters (y / n)?: ').lower()
 
+  # Ask the user if wants only headquarters (matriz)
+  remove_mei = ''
+  while remove_mei not in ['y', 'n']:
+    remove_mei = input('Would to remove MEI (Micro Entrepreneurs) (y / n)?: ').lower()
+
   # TODO: Filter states
-  # TODO: Filter only big companies
+
 
   print('Starting the exporting process...')
-  export_data(export_format, active_companies, headquarter)
+  export_data(export_format, active_companies, headquarter, remove_mei)
 
-def export_data(export_format, active_companies, headquarter):
+def export_data(export_format, active_companies, headquarter, remove_mei):
   # Connect to the database to get the data that is going to be exported
   conDB_new = sqlite3.connect(new_db_location+new_db_name)
   
@@ -42,9 +47,17 @@ def export_data(export_format, active_companies, headquarter):
     sql_select_companies += ' WHERE situacao = "02"'
     if headquarter == 'y':
       sql_select_companies += ' AND matriz_filial = "1"'
+      if remove_mei == 'y':
+        sql_select_companies += ' AND porte IN("00","03","05")'
   else:
     if headquarter == 'y':
       sql_select_companies += ' WHERE matriz_filial ="1"'
+      if remove_mei == 'y':
+        sql_select_companies += ' AND porte IN("00","03","05")'
+    else:
+      if remove_mei == 'y':
+        sql_select_companies += ' WHERE porte IN("00","03","05")'
+
   
   # Adding ; at the end of sql statement
   sql_select_companies += ';'
