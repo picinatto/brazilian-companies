@@ -21,9 +21,6 @@ def run():
   # TODO: Filter states
   # TODO: Filter only headquarters
 
-  print(export_format)
-  print(active_companies)
-
   print('Starting the exporting process...')
   export_data(export_format, active_companies)
 
@@ -37,7 +34,7 @@ def export_data(export_format, active_companies):
 
   # Using logic to filter data as asked
   if active_companies == 'y':
-    sql_select_companies += ' WHERE situacao_cadastral = "02"'
+    sql_select_companies += ' WHERE situacao = "02"'
   else:
     sql_select_companies += ';'
 
@@ -51,7 +48,7 @@ def export_data(export_format, active_companies):
   # Remove the last comma from the string
   cnpj_list = cnpj_list[:-1]
 
-  df_cnaes = pd.read_sql(f'SELECT * FROM cnaes WHERE cnpj IN({cnpj_list})')
+  df_cnaes = pd.read_sql(f'SELECT * FROM cnaes WHERE cnpj IN({cnpj_list})', conDB_new)
 
   if export_format == 'csv':
     print('Exporting to csv')
