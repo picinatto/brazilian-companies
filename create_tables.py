@@ -237,7 +237,6 @@ def get_cnaes(cnpjs):
 
   return df_cnaes
 
-
 def create_table_cities():
   '''
       Get the cities from the empresas table and match each by the city name and 
@@ -247,6 +246,7 @@ def create_table_cities():
       be linked the empresas on 'cod_municipio' and additional data like meso and 
       microregion and the city_code for the IBGE system
   '''
+  # TODO: SAVE THE ciTIES in The new Database
   start_time = datetime.datetime.now()
   print(f'Started at {datetime.datetime.now()}')
 
@@ -338,4 +338,4 @@ def create_table_cities():
   conDB.close()
 
 create_table_companies_filtered_state(['SC'])
-#create_table_cities()
+create_table_cities()
