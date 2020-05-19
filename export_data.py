@@ -33,15 +33,25 @@ def export_data(export_format, active_companies):
   
   # Getting the data from the table companies
   print('Getting the data from the database..')
-  sql_select = 'SELECT * FROM companies'
+  sql_select_companies = 'SELECT * FROM companies'
 
   # Using logic to filter data as asked
   if active_companies == 'y':
-    sql_select += ' WHERE situacao_cadastral = "02"'
+    sql_select_companies += ' WHERE situacao_cadastral = "02"'
   else:
-    sql_select += ';'
+    sql_select_companies += ';'
 
-  df_companies = pd.read_sql(sql_select, conDB_new)
+  df_companies = pd.read_sql(sql_select_companies, conDB_new)
+
+  # Initialize the variable that will hold a string with all the cnpjs
+  cnpj_list = ''
+  # Iterate each item in the list and convert to a string
+  for key, value in df_companies.iterrows():
+    cnpj_list += '"' + value[0] + '",'
+  # Remove the last comma from the string
+  cnpj_list = cnpj_list[:-1]
+
+  df_cnaes = pd.read_sql(f'SELECT * FROM cnaes WHERE cnpj IN({cnpj_list})')
 
   if export_format == 'csv':
     print('Exporting to csv')
