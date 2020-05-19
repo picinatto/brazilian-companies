@@ -55,8 +55,9 @@ def export_data(export_format, active_companies):
 
   if export_format == 'csv':
     print('Exporting to csv')
-    exported_path = 'exports/companies.csv'
-    df_companies.to_csv(exported_path)
+    exported_path = 'exports/'
+    df_companies.to_csv(exported_path+'companies.csv')
+    df_cnaes.to_csv(exported_path+'cnaes.csv')
   elif export_format == 'sqlite': 
     print('Exporting to sql')
     exported_path = 'exports/companies.db'
