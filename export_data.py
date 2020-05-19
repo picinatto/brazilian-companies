@@ -18,13 +18,18 @@ def run():
   while active_companies not in ['y', 'n']:
     active_companies = input('Would like only active companies (y / n)?: ').lower()
 
+  # Ask the user if wants only headquarters (matriz)
+  headquarter = ''
+  while headquarter not in ['y', 'n']:
+    headquarter = input('Would like only the companies headquarters (y / n)?: ').lower()
+
   # TODO: Filter states
-  # TODO: Filter only headquarters
+  # TODO: Filter only big companies
 
   print('Starting the exporting process...')
-  export_data(export_format, active_companies)
+  export_data(export_format, active_companies, headquarter)
 
-def export_data(export_format, active_companies):
+def export_data(export_format, active_companies, headquarter):
   # Connect to the database to get the data that is going to be exported
   conDB_new = sqlite3.connect(new_db_location+new_db_name)
   
@@ -35,8 +40,14 @@ def export_data(export_format, active_companies):
   # Using logic to filter data as asked
   if active_companies == 'y':
     sql_select_companies += ' WHERE situacao = "02"'
+    if headquarter == 'y':
+      sql_select_companies += ' AND matriz_filial = "1"'
   else:
-    sql_select_companies += ';'
+    if headquarter == 'y':
+      sql_select_companies += ' WHERE matriz_filial ="1"'
+  
+  # Adding ; at the end of sql statement
+  sql_select_companies += ';'
 
   df_companies = pd.read_sql(sql_select_companies, conDB_new)
 
