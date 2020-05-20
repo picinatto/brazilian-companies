@@ -246,12 +246,15 @@ def create_table_cities():
       be linked the empresas on 'cod_municipio' and additional data like meso and 
       microregion and the city_code for the IBGE system
   '''
-  # TODO: SAVE THE ciTIES in The new Database
   start_time = datetime.datetime.now()
   print(f'Started at {datetime.datetime.now()}')
 
   conDB = sqlite3.connect(db_location+db_name)
   cursorDB = conDB.cursor()
+
+  # Create the new database if does not exists
+  conDB_new = sqlite3.connect(new_db_location+new_db_name)
+  cursorDB_new = conDB_new.cursor()
 
   # Create the query to get the distinct cities in empresas table
   sql_select_cities = ''' SELECT DISTINCT 
@@ -305,15 +308,15 @@ def create_table_cities():
   );'''
 
   print('Creating table cities, if not existent')
-  cursorDB.execute(sql_create_cities)
+  cursorDB_new.execute(sql_create_cities)
 
   # Clean the table cities to not duplicate records
   print('Cleaning the table cities')
-  cursorDB.execute('DELETE FROM cities')
+  cursorDB_new.execute('DELETE FROM cities')
 
   # Insert the cities to the city table
   print('Adding new cities to the table')
-  df_cities.to_sql('cities', con=conDB, if_exists='replace')
+  df_cities.to_sql('cities', con=conDB_new, if_exists='replace')
 
   # Check if there is cities that were not matched by the uf and city_name
   print('Checking if there was not matched cities')
@@ -337,5 +340,5 @@ def create_table_cities():
   print(f'Finished at {datetime.datetime.now()}')
   conDB.close()
 
-create_table_companies_filtered_state(['SC'])
+#create_table_companies_filtered_state(['SC'])
 create_table_cities()
