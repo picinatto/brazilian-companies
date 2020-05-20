@@ -76,12 +76,15 @@ def export_data(export_format, active_companies, headquarter, remove_mei):
 
   df_cities = pd.read_sql('SELECT * FROM cities', conDB_new)
 
+  df_cnaes_ibge = pd.read_sql('SELECT * FROM cnaes_ibge', conDB_new)
+
   if export_format == 'csv':
     print('Exporting to csv')
     exported_path = 'exports/'
     df_companies.to_csv(exported_path+'companies.csv')
     df_cnaes.to_csv(exported_path+'cnaes.csv')
     df_cities.to_csv(exported_path+'cities.csv')
+    df_cnaes_ibge.to_csv(exported_path+'cnaes_ibge.csv')
   elif export_format == 'sqlite': 
     print('Exporting to sql')
     exported_path = 'exports/companies.db'

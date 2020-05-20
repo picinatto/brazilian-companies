@@ -199,7 +199,7 @@ def create_table_companies_filtered_state(states_list,status=''):
   #TODO: Get the stockholders data
 
   # Get CNAES from IBGE and add to the Database
-  df_cnaes_ibge = pd.read_csv('/assets/cnae_ibge.csv')
+  df_cnaes_ibge = pd.read_csv('/assets/cnaes_ibge.csv')
 
   sql_create_cnaes_ibge = '''CREATE TABLE IF NOT EXISTS cnaes_ibge (
     CodigoInt text,
@@ -365,5 +365,5 @@ def create_table_cities():
   print(f'Finished at {datetime.datetime.now()}')
   conDB.close()
 
-#create_table_companies_filtered_state(['SC'])
-create_table_cities()
+create_table_companies_filtered_state(['PR','SC','RS'])
+#create_table_cities()
