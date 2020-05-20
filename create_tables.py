@@ -79,7 +79,6 @@ def create_table_companies_filtered_state(states_list,status=''):
   
   cursorDB_new.execute(sql_delete)
 
-
   # Initialize the variable that will hold a string with all the states
   states = ''
   # Iterate each item in the list and convert to a string
@@ -198,6 +197,32 @@ def create_table_companies_filtered_state(states_list,status=''):
     cursorDB_new.execute(sql_insert_index)
 
   #TODO: Get the stockholders data
+
+  # Get CNAES from IBGE and add to the Database
+  df_cnaes_ibge = pd.read_csv('/assets/cnae_ibge.csv')
+
+  sql_create_cnaes_ibge = '''CREATE TABLE IF NOT EXISTS cnaes_ibge (
+    CodigoInt text,
+    Codigo text,
+    Cnae text,
+    CodSecao text,
+    Secao text,
+    CodDivisao text,
+    Divisao text,
+    CodGrupo text,
+    Grupo text,
+    CodClasse text,
+    Classe text);'''
+
+  cursorDB_new.execute(sql_create_cnaes_ibge)
+
+  # Delete existing data in the table
+  print(f'Cleaning the table cnaes_ibge')
+  sql_delete = f'DELETE FROM cnaes_ibge'
+  
+  cursorDB_new.execute(sql_delete)
+  # Write the table to the Database
+  df_cnaes_ibge.to_sql('cnaes_ibge', con=conDB_new, if_exists='replace')
 
   print(f'Finished at {datetime.datetime.now()}')
   conDB_new.close()
