@@ -84,20 +84,11 @@ def create_table_companies_filtered_state(states_list,status=''):
   df_cnaes = get_cnaes(df_cnpjs)
 
   print(f'Creating the table cnaes if not exists in database {new_db_name}..')
-  sql_create_cnaes = f'''CREATE TABLE IF NOT EXISTS cnaes (
-      cnpj text, 
-      cnae_ordem integer,
-      cnae text
-      );
-   '''
-
-  cursorDB_new.execute(sql_create_cnaes)
+  cursorDB_new.execute(sql.get_sql_create_cnaes())
 
   # Delete existing data in the table
   print(f'Cleaning the table cnaes')
-  sql_delete_cnaes = f'DELETE FROM cnaes'
-
-  cursorDB_new.execute(sql_delete_cnaes)
+  cursorDB_new.execute(sql.get_sql_delete('cnaes'))
 
   print(f'Saving the cnaes data in the database {new_db_name}')
   df_cnaes.to_sql('cnaes', con=conDB_new, if_exists='replace',index=False)
@@ -120,26 +111,12 @@ def create_table_companies_filtered_state(states_list,status=''):
   # Get CNAES from IBGE and add to the Database
   df_cnaes_ibge = pd.read_csv('assets/cnaes_ibge.csv',dtype='str')
 
-  sql_create_cnaes_ibge = '''CREATE TABLE IF NOT EXISTS cnaes_ibge (
-    CodigoInt text,
-    Codigo text,
-    Cnae text,
-    CodSecao text,
-    Secao text,
-    CodDivisao text,
-    Divisao text,
-    CodGrupo text,
-    Grupo text,
-    CodClasse text,
-    Classe text);'''
-
-  cursorDB_new.execute(sql_create_cnaes_ibge)
+  cursorDB_new.execute(sql.get_sql_create_cnaes_ibge())
 
   # Delete existing data in the table
-  print(f'Cleaning the table cnaes_ibge')
-  sql_delete = f'DELETE FROM cnaes_ibge'
-  
-  cursorDB_new.execute(sql_delete)
+  print(f'Cleaning the table cnaes_ibge') 
+  cursorDB_new.execute(sql.get_sql_delete('cnaes_ibge'))
+
   # Write the table to the Database
   df_cnaes_ibge.to_sql('cnaes_ibge', con=conDB_new, if_exists='replace')
 
@@ -200,25 +177,9 @@ def create_table_cities():
   conDB_new = sqlite3.connect(new_db_location+new_db_name)
   cursorDB_new = conDB_new.cursor()
 
-  # Create the query to get the distinct cities in empresas table
-  sql_select_cities = ''' SELECT DISTINCT 
-      t0.cod_municipio,
-      t1.municipio AS city_name,
-      t1.uf AS uf_name
-    FROM empresas t0
-      INNER JOIN (
-        SELECT 
-          cod_municipio,
-          MIN(municipio) As municipio,
-          MIN(uf) AS uf
-        FROM empresas
-          GROUP BY cod_municipio
-      ) t1 ON t1.cod_municipio = t0.cod_municipio
-  '''
-
   # Select the unique cities from the companies table and store in df_cities_companies
   print('Getting the cities from the companies\' database')
-  df_cities_companies = pd.read_sql_query(sql_select_cities,conDB)
+  df_cities_companies = pd.read_sql_query(sql.get_sql_select_cities(),conDB)
   # Write the cities_companies to csv for auditing purpuses
   df_cities_companies.to_csv('assets/cities-companies.csv')
 
@@ -237,26 +198,12 @@ def create_table_cities():
   print('Merging the companies cities and IBGE')
   df_cities = pd.merge(df_cities_ibge,df_cities_companies,how='left',on=['uf_name','city_name'])
 
-  # Create table that will hold data for the cities
-  sql_create_cities = '''CREATE TABLE IF NOT EXISTS cities (
-    uf_code text,
-    uf_name text,
-    mesoregion_code text,
-    mesoregion_name text,
-    microregion_code text,
-    microregion_name text,
-    cod_municipio text,
-    city_code text,
-    city_complete_code text,
-    city_name text
-  );'''
-
   print('Creating table cities, if not existent')
-  cursorDB_new.execute(sql_create_cities)
+  cursorDB_new.execute(sql.get_sql_create_cities())
 
   # Clean the table cities to not duplicate records
   print('Cleaning the table cities')
-  cursorDB_new.execute('DELETE FROM cities')
+  cursorDB_new.execute(sql.get_sql_delete('cities'))
 
   # Insert the cities to the city table
   print('Adding new cities to the table')

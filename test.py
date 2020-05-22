@@ -1,4 +1,3 @@
-import create_table_sql
+import create_table_sql as sql
 
-print(create_table_sql.get_sql_create_companies())
-print(create_table_sql.get_sql_insert_companies('DB_BOSTA','SC'))
+print(sql.get_sql_delete('cnaes'))

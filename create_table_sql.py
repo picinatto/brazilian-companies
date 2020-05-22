@@ -1,5 +1,5 @@
 def get_sql_delete(table_name):
-  return f'DELETE FROM {table_name}'
+  return f'DELETE FROM {table_name};'
 
 def get_sql_create_companies():
   return '''CREATE TABLE IF NOT EXISTS companies (
@@ -84,3 +84,51 @@ def get_sql_insert_companies(db_short_name,states):
       sit_especial, 
       data_sit_especial
       FROM {db_short_name}.empresas WHERE uf IN({states}));'''
+
+def get_sql_create_cnaes():
+  return '''CREATE TABLE IF NOT EXISTS cnaes (
+      cnpj text, 
+      cnae_ordem integer,
+      cnae text);'''
+
+def get_sql_create_cnaes_ibge():
+  return '''CREATE TABLE IF NOT EXISTS cnaes_ibge (
+    CodigoInt text,
+    Codigo text,
+    Cnae text,
+    CodSecao text,
+    Secao text,
+    CodDivisao text,
+    Divisao text,
+    CodGrupo text,
+    Grupo text,
+    CodClasse text,
+    Classe text);'''
+
+def get_sql_select_cities():
+  return ''' SELECT DISTINCT 
+      t0.cod_municipio,
+      t1.municipio AS city_name,
+      t1.uf AS uf_name
+    FROM empresas t0
+      INNER JOIN (
+        SELECT 
+          cod_municipio,
+          MIN(municipio) As municipio,
+          MIN(uf) AS uf
+        FROM empresas
+          GROUP BY cod_municipio
+      ) t1 ON t1.cod_municipio = t0.cod_municipio;'''
+
+def get_sql_create_cities():
+  return '''CREATE TABLE IF NOT EXISTS cities (
+    uf_code text,
+    uf_name text,
+    mesoregion_code text,
+    mesoregion_name text,
+    microregion_code text,
+    microregion_name text,
+    cod_municipio text,
+    city_code text,
+    city_complete_code text,
+    city_name text);'''
