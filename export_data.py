@@ -2,6 +2,7 @@ import sqlite3
 import pandas as pd
 import numpy as np
 import sys
+import sql_scripts as sql
 
 new_db_location = '/media/sf_share/data/out/'
 new_db_name = 'companies'
@@ -91,7 +92,19 @@ def export_data(export_format, active_companies, headquarter, remove_mei):
     # Create the new database if does not exists
     conDB_export = sqlite3.connect(exported_path)
     cursorDB_export = conDB_new.cursor()
-    df_companies.to_sql()
+
+    # Create the tables that will hold the exported data
+    cursorDB_export.execute(sql.get_sql_create_companies())
+    cursorDB_export.execute(sql.get_sql_create_cnaes())
+    cursorDB_export.execute(sql.get_sql_create_cities())
+    cursorDB_export.execute(sql.get_sql_create_cnaes_ibge())
+
+    # Execute the insert in each table
+    df_companies.to_sql('companies', conDB_export)
+    df_cnaes.to_sql('cnaes', conDB_export)
+    df_cities.to_sql('cities', conDB_export)
+    df_cnaes_ibge.to_sql('cnaes', conDB_export)
+    
   else:
     print('No correct export format was found..')
 

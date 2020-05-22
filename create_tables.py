@@ -3,7 +3,7 @@ import datetime
 import pandas as pd
 import numpy as np
 from unidecode import unidecode
-import create_table_sql as sql
+import sql_scripts as sql
 
 db_location = '/media/sf_share/data/out/'
 db_name = 'CNPJ_full.db'
