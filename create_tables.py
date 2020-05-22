@@ -3,6 +3,7 @@ import datetime
 import pandas as pd
 import numpy as np
 from unidecode import unidecode
+import create_table_sql as sql
 
 db_location = '/media/sf_share/data/out/'
 db_name = 'CNPJ_full.db'
@@ -28,56 +29,13 @@ def create_table_companies_filtered_state(states_list,status=''):
   # Attach new database to the old one
   conDB_new.execute(f"ATTACH '{db_location}{db_name}' AS '{db_short_name}';")
 
-  print(f'Creating the table {table_name} if not exists in database {new_db_name}..')
-  sql_create = f'''CREATE TABLE IF NOT EXISTS {table_name} (
-      cnpj text, 
-      matriz_filial text, 
-      razao_social text, 
-      nome_fantasia text, 
-      situacao text, 
-      data_situacao text, 
-      motivo_situacao text, 
-      nm_cidade_exterior text,
-      cod_pais text, 
-      nome_pais text, 
-      cod_nat_juridica text, 
-      data_inicio_ativ text, 
-      cnae_fiscal text, 
-      tipo_logradouro text, 
-      logradouro text, 
-      numero text, 
-      complemento text, 
-      bairro text, 
-      cep text, 
-      uf text, 
-      cod_municipio text, 
-      municipio text, 
-      ddd_1 text, 
-      telefone_1 text, 
-      ddd_2 text, 
-      telefone_2 text, 
-      ddd_fax text, 
-      num_fax text, 
-      email text, 
-      qualif_resp text, 
-      capital_social integer, 
-      porte text, 
-      opc_simples text, 
-      data_opc_simples text, 
-      data_exc_simples text, 
-      opc_mei text, 
-      sit_especial text, 
-      data_sit_especial
-      );
-   '''
-
-  cursorDB_new.execute(sql_create)
+  print(f'Creating the table companies if not exists in database {new_db_name}..')
+  
+  cursorDB_new.execute(sql.get_sql_create_companies())
 
   # Delete existing data in the table
-  print(f'Cleaning the table {table_name}')
-  sql_delete = f'DELETE FROM {table_name}'
-  
-  cursorDB_new.execute(sql_delete)
+  print(f'Cleaning the table {table_name}') 
+  cursorDB_new.execute(sql.get_sql_delete(table_name))
 
   # Initialize the variable that will hold a string with all the states
   states = ''
@@ -89,47 +47,8 @@ def create_table_companies_filtered_state(states_list,status=''):
 
   # Inserting the data in the table
   print(f'Creating the insert statement in the table {table_name} on DB {new_db_name}')
-
-  sql_insert = f'''INSERT INTO {table_name} SELECT * FROM (SELECT
-      cnpj, 
-      matriz_filial, 
-      razao_social, 
-      nome_fantasia, 
-      situacao, 
-      data_situacao, 
-      motivo_situacao, 
-      nm_cidade_exterior,
-      cod_pais, 
-      nome_pais, 
-      cod_nat_juridica, 
-      data_inicio_ativ, 
-      cnae_fiscal, 
-      tipo_logradouro, 
-      logradouro, 
-      numero, 
-      complemento, 
-      bairro, 
-      cep, 
-      uf, 
-      cod_municipio, 
-      municipio, 
-      ddd_1, 
-      telefone_1, 
-      ddd_2, 
-      telefone_2, 
-      ddd_fax, 
-      num_fax, 
-      email, 
-      qualif_resp, 
-      CAST((capital_social/100) AS INTEGER) AS capital_social, 
-      porte, 
-      opc_simples, 
-      data_opc_simples, 
-      data_exc_simples, 
-      opc_mei, 
-      sit_especial, 
-      data_sit_especial
-      FROM {db_short_name}.empresas WHERE uf IN({states}));'''
+  # Getting the sql string from class
+  sql_insert = sql.get_sql_insert_companies(db_short_name, states)
   
   # Checking if a string was added to status, if not add the filter condition
   #   to get only the Active companies (situacao == '02')

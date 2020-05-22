@@ -88,7 +88,9 @@ def export_data(export_format, active_companies, headquarter, remove_mei):
   elif export_format == 'sqlite': 
     print('Exporting to sql')
     exported_path = 'exports/companies.db'
-    # TODO: Add the logic to save to sqlite
+    # Create the new database if does not exists
+    conDB_export = sqlite3.connect(exported_path)
+    cursorDB_export = conDB_new.cursor()
     df_companies.to_sql()
   else:
     print('No correct export format was found..')
